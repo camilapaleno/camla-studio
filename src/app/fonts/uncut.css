@@ -1,0 +1,127 @@
+
+
+
+@font-face {
+    font-family: 'Uncut Sans';
+    src: url('uncut-sans-bold.eot');
+    src: url('uncut-sans-bold.eot?#iefix') format('embedded-opentype'),
+         url('uncut-sans-bold.woff2') format('woff2'),
+         url('uncut-sans-bold.woff') format('woff'),
+         url('uncut-sans-bold.ttf') format('truetype'),
+         url('uncut-sans-bold.svg#uncut_sansbold') format('svg');
+    font-weight: 800;
+    font-style: normal;
+
+}
+
+
+
+
+@font-face {
+    font-family: 'Uncut Sans';
+    src: url('uncut-sans-boldoblique.eot');
+    src: url('uncut-sans-boldoblique.eot?#iefix') format('embedded-opentype'),
+         url('uncut-sans-boldoblique.woff2') format('woff2'),
+         url('uncut-sans-boldoblique.woff') format('woff'),
+         url('uncut-sans-boldoblique.ttf') format('truetype'),
+         url('uncut-sans-boldoblique.svg#uncut_sansbold_oblique') format('svg');
+    font-weight: 800;
+    font-style: oblique;
+
+}
+
+
+
+
+@font-face {
+    font-family: 'Uncut Sans';
+    src: url('uncut-sans-medium.eot');
+    src: url('uncut-sans-medium.eot?#iefix') format('embedded-opentype'),
+         url('uncut-sans-medium.woff2') format('woff2'),
+         url('uncut-sans-medium.woff') format('woff'),
+         url('uncut-sans-medium.ttf') format('truetype'),
+         url('uncut-sans-medium.svg#uncut_sansmedium') format('svg');
+    font-weight: 600;
+    font-style: normal;
+
+}
+
+
+
+
+@font-face {
+    font-family: 'Uncut Sans';
+    src: url('uncut-sans-mediumoblique.eot');
+    src: url('uncut-sans-mediumoblique.eot?#iefix') format('embedded-opentype'),
+         url('uncut-sans-mediumoblique.woff2') format('woff2'),
+         url('uncut-sans-mediumoblique.woff') format('woff'),
+         url('uncut-sans-mediumoblique.ttf') format('truetype'),
+         url('uncut-sans-mediumoblique.svg#uncut_sansmedium_oblique') format('svg');
+    font-weight: 600;
+    font-style: oblique;
+
+}
+
+
+
+
+@font-face {
+    font-family: 'Uncut Sans';
+    src: url('uncut-sans-regular.eot');
+    src: url('uncut-sans-regular.eot?#iefix') format('embedded-opentype'),
+         url('uncut-sans-regular.woff2') format('woff2'),
+         url('uncut-sans-regular.woff') format('woff'),
+         url('uncut-sans-regular.ttf') format('truetype'),
+         url('uncut-sans-regular.svg#uncut_sansregular') format('svg');
+    font-weight: 500;
+    font-style: normal;
+
+}
+
+
+
+
+@font-face {
+    font-family: 'Uncut Sans';
+    src: url('uncut-sans-regularoblique.eot');
+    src: url('uncut-sans-regularoblique.eot?#iefix') format('embedded-opentype'),
+         url('uncut-sans-regularoblique.woff2') format('woff2'),
+         url('uncut-sans-regularoblique.woff') format('woff'),
+         url('uncut-sans-regularoblique.ttf') format('truetype'),
+         url('uncut-sans-regularoblique.svg#uncut_sansregular_oblique') format('svg');
+    font-weight: 500;
+    font-style: oblique;
+
+}
+
+
+
+
+@font-face {
+    font-family: 'Uncut Sans';
+    src: url('uncut-sans-semibold.eot');
+    src: url('uncut-sans-semibold.eot?#iefix') format('embedded-opentype'),
+         url('uncut-sans-semibold.woff2') format('woff2'),
+         url('uncut-sans-semibold.woff') format('woff'),
+         url('uncut-sans-semibold.ttf') format('truetype'),
+         url('uncut-sans-semibold.svg#uncut_sanssemibold') format('svg');
+    font-weight: 700;
+    font-style: normal;
+
+}
+
+
+
+
+@font-face {
+    font-family: 'Uncut Sans';
+    src: url('uncut-sans-semiboldoblique.eot');
+    src: url('uncut-sans-semiboldoblique.eot?#iefix') format('embedded-opentype'),
+         url('uncut-sans-semiboldoblique.woff2') format('woff2'),
+         url('uncut-sans-semiboldoblique.woff') format('woff'),
+         url('uncut-sans-semiboldoblique.ttf') format('truetype'),
+         url('uncut-sans-semiboldoblique.svg#uncut_sanssemibold_oblique') format('svg');
+    font-weight: 700;
+    font-style: oblique;
+
+}
