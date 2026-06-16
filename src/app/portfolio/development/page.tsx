@@ -63,8 +63,15 @@ function SSTemplateCard({ name, image, video, isPlaying, onPlay }: {
   isPlaying: boolean;
   onPlay: () => void;
 }) {
+  const [prefetch, setPrefetch] = useState(false);
+
   return (
-    <button className="dev-grid-card" onClick={onPlay}>
+    <button
+      className="dev-grid-card"
+      onClick={onPlay}
+      onMouseEnter={() => setPrefetch(true)}
+      onTouchStart={() => setPrefetch(true)}
+    >
       <div className="dev-grid-card-image">
         <div className="dev-grid-image-wrapper">
           {isPlaying ? (
@@ -85,6 +92,9 @@ function SSTemplateCard({ name, image, video, isPlaying, onPlay }: {
                   <path d="M8 5v14l11-7z" />
                 </svg>
               </div>
+              {prefetch && (
+                <video src={video} preload="auto" style={{ display: 'none' }} />
+              )}
             </>
           )}
         </div>
