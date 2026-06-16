@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     output: 'export',
+    basePath: '/camla-studio',
+    assetPrefix: '/camla-studio',
     images: {
       unoptimized: true,
     },
