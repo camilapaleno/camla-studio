@@ -715,6 +715,7 @@ a.dev-grid-card:nth-child(3n) {
   .modal {
     padding: 0;
     align-items: flex-start;
+    overflow: hidden;
   }
 }
 
@@ -737,8 +738,10 @@ a.dev-grid-card:nth-child(3n) {
   .frame {
     padding: 0;
     border-radius: 0;
-    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -754,7 +757,9 @@ a.dev-grid-card:nth-child(3n) {
   .project-layout {
     flex-direction: column;
     gap: 0;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
   }
 }
 
@@ -770,7 +775,16 @@ a.dev-grid-card:nth-child(3n) {
 @media (max-width: 1280px) {
   .project-info-panel {
     width: 100%;
-    padding: 30px;
+    padding: 20px 24px 16px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 560px) {
+  .project-info-panel {
+    max-height: 42dvh;
   }
 }
 
@@ -981,6 +995,7 @@ a.dev-grid-card:nth-child(3n) {
     min-height: 0;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
 }
 
@@ -1003,9 +1018,10 @@ a.dev-grid-card:nth-child(3n) {
 @media (max-width: 1280px) {
   .content-display-wrapper {
     border-radius: 0;
-    padding: 30px;
+    padding: 0;
     flex: 1;
-    height: 60vh;
+    min-height: 0;
+    height: auto;
   }
 }
 
