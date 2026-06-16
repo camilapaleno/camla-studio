@@ -694,6 +694,104 @@ a.dev-grid-card:nth-child(3n) {
 }
 
 /* ============================================
+   SS TEMPLATE PLAY BUTTON
+   ============================================ */
+
+.ss-play-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: opacity 0.2s ease, background 0.2s ease;
+  pointer-events: none;
+}
+
+.ss-play-btn svg {
+  width: 18px;
+  height: 18px;
+  color: #fff;
+  margin-left: 2px;
+}
+
+.dev-grid-card:hover .ss-play-btn {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+/* ============================================
+   SS TEMPLATE VIDEO MODAL
+   ============================================ */
+
+.ss-video-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.ss-video-player {
+  max-width: min(90vw, 900px);
+  max-height: 85dvh;
+  width: 100%;
+  border-radius: 6px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+  display: block;
+}
+
+.ss-video-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: background 0.2s ease;
+}
+
+.ss-video-close:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.ss-video-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 560px) {
+  .ss-video-overlay {
+    padding: 0;
+    align-items: center;
+  }
+  .ss-video-player {
+    max-height: 60dvh;
+    border-radius: 0;
+  }
+  .ss-video-close {
+    top: 12px;
+    right: 12px;
+  }
+}
+
+/* ============================================
    PROJECT MODAL
    ============================================ */
 .modal {

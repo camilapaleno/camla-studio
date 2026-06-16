@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { development } from '@/data/development';
 import Project from "@/components/Project";
 import AnimatedHeader from "@/components/AnimatedHeader";
@@ -10,6 +11,12 @@ import ssCd from "@/app/assets/screencap/ss-template-cd.jpg";
 import ssHorizon from "@/app/assets/screencap/ss-template-horizon.jpg";
 import ssPerspective from "@/app/assets/screencap/ss-template-perspective.jpg";
 import ssPhoto from "@/app/assets/screencap/ss-template-photo.jpg";
+import vidBlur from "@/app/assets/video/portfolio-vid-blur.webm";
+import vidBright from "@/app/assets/video/portfolio-vid-bright.webm";
+import vidCd from "@/app/assets/video/portfolio-vid-cds.webm";
+import vidHorizon from "@/app/assets/video/portfolio-vid-horizon.webm";
+import vidPerspective from "@/app/assets/video/perspective-vid-horizon.webm";
+import vidPhoto from "@/app/assets/video/portfolio-vid-photo.webm";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DevelopmentProject = (typeof development)[number] & { [key: string]: any };
@@ -17,13 +24,14 @@ type DevelopmentProject = (typeof development)[number] & { [key: string]: any };
 const SECTIONS = ["studios", "custom", "hospitality"] as const;
 
 const SS_TEMPLATES = [
-  { name: "Blur", image: ssBlur, link: "https://pcmila.squarespace.com/blur" },
-  { name: "Bright", image: ssBright, link: "https://pcmila.squarespace.com/bright" },
-  { name: "CD", image: ssCd, link: "https://pcmila.squarespace.com/cds" },
-  { name: "Horizon", image: ssHorizon, link: "https://pcmila.squarespace.com/horizon" },
-  { name: "Perspective", image: ssPerspective, link: "https://pcmila.squarespace.com/perspective" },
-  { name: "Photo", image: ssPhoto, link: "https://pcmila.squarespace.com/photo/albums" },
+  { name: "Blur",        image: ssBlur,        video: vidBlur },
+  { name: "Bright",      image: ssBright,      video: vidBright },
+  { name: "CD",          image: ssCd,          video: vidCd },
+  { name: "Horizon",     image: ssHorizon,     video: vidHorizon },
+  { name: "Perspective", image: ssPerspective, video: vidPerspective },
+  { name: "Photo",       image: ssPhoto,       video: vidPhoto },
 ];
+
 const PREVIEW_COUNT = 3;
 
 function DevGridCard({ project, onClick, isFirst }: { project: DevelopmentProject; onClick: () => void; isFirst?: boolean }) {
@@ -35,14 +43,7 @@ function DevGridCard({ project, onClick, isFirst }: { project: DevelopmentProjec
         <div className="dev-grid-image-wrapper">
           <img src={project.preview.src} alt={project.title} className="dev-grid-preview" />
           {project.overlayVideo ? (
-            <video
-              src={project.overlayVideo}
-              className="dev-grid-overlay"
-              autoPlay
-              loop
-              muted
-              playsInline
-            />
+            <video src={project.overlayVideo} className="dev-grid-overlay" autoPlay loop muted playsInline />
           ) : (
             <img src={project.overlay.src} alt={project.title} className="dev-grid-overlay" />
           )}
@@ -56,25 +57,60 @@ function DevGridCard({ project, onClick, isFirst }: { project: DevelopmentProjec
   );
 }
 
-function SSTemplateCard({ name, image, link }: { name: string; image: { src: string }; link: string }) {
+function SSTemplateCard({ name, image, onPlay }: { name: string; image: { src: string }; onPlay: () => void }) {
   return (
-    <a
-      className="dev-grid-card"
-      href={link}
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column' }}
-    >
+    <button className="dev-grid-card" onClick={onPlay}>
       <div className="dev-grid-card-image">
         <div className="dev-grid-image-wrapper">
           <img src={image.src} alt={name} className="dev-grid-preview" />
+          <div className="ss-play-btn" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
         </div>
       </div>
       <div className="dev-grid-card-info">
         <span className="dev-grid-card-title">{name}</span>
         <span className="dev-grid-card-meta">Squarespace</span>
       </div>
-    </a>
+    </button>
+  );
+}
+
+function SSVideoModal({ video, name, onClose }: { video: string; name: string; onClose: () => void }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [onClose]);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="ss-video-overlay" onClick={onClose}>
+      <button className="ss-video-close" onClick={onClose} aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <video
+        src={video}
+        autoPlay
+        controls
+        playsInline
+        className="ss-video-player"
+        onClick={e => e.stopPropagation()}
+      />
+    </div>,
+    document.body
   );
 }
 
@@ -82,6 +118,7 @@ function Development() {
   const [data, setData] = useState<DevelopmentProject | null>(null);
   const [visible, setVisible] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [activeVideo, setActiveVideo] = useState<{ video: string; name: string } | null>(null);
 
   const toggleItem = (item: DevelopmentProject | null = null) => {
     setData(item);
@@ -97,14 +134,21 @@ function Development() {
             Made with <span className="pixel">camila</span>
           </AnimatedHeader>
         </section>
-          <div className="dev-section">
-            <p className="dev-section-label">/squarespace templates</p>
-            <div className="dev-grid-container">
-              {SS_TEMPLATES.map((t) => (
-                <SSTemplateCard key={t.name} name={t.name} image={t.image} link={t.link} />
-              ))}
-            </div>
+
+        <div className="dev-section">
+          <p className="dev-section-label">/squarespace templates</p>
+          <div className="dev-grid-container">
+            {SS_TEMPLATES.map((t) => (
+              <SSTemplateCard
+                key={t.name}
+                name={t.name}
+                image={t.image}
+                onPlay={() => setActiveVideo({ video: t.video, name: t.name })}
+              />
+            ))}
           </div>
+        </div>
+
         <div className="dev-sections">
           {SECTIONS.map(section => {
             const projects = development.filter(p => p.category.includes(section));
@@ -136,12 +180,18 @@ function Development() {
               </div>
             );
           })}
-
-
         </div>
 
         {visible && data !== null && (
           <Project data={data} closeModal={() => toggleItem()} />
+        )}
+
+        {activeVideo && (
+          <SSVideoModal
+            video={activeVideo.video}
+            name={activeVideo.name}
+            onClose={() => setActiveVideo(null)}
+          />
         )}
       </div>
     </>
