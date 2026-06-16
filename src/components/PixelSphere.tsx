@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { useTheme } from '@/context/ThemeContext';
 
 interface Pixel {
   mesh: THREE.Mesh;
@@ -12,7 +11,6 @@ interface Pixel {
 }
 
 export default function PixelSphere() {
-  const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
   const previousMouseRef = useRef({ x: 0, y: 0 });
@@ -73,8 +71,7 @@ export default function PixelSphere() {
 
       // Create pixel (small box)
       const geometry = new THREE.BoxGeometry(pixelSize, pixelSize, pixelSize);
-      // Color based on theme: dark text color (#463535) for light mode, white for dark mode
-      const pixelColor = theme === 'light' ? 0x7dd926 : 0xffffff;
+      const pixelColor = 0xffffff;
       const material = new THREE.MeshStandardMaterial({
         color: pixelColor,
         emissive: pixelColor,
@@ -280,7 +277,7 @@ export default function PixelSphere() {
       });
       renderer.dispose();
     };
-  }, [theme]);
+  }, []);
 
   return (
     <div
