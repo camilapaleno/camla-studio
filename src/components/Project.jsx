@@ -136,7 +136,7 @@ const Project = ({ data, closeModal }) => {
           </div>
 
           {/* Right Content Area - Iframe, Video, or Gallery */}
-          {data.embed === 'none' ? null :
+          {true ? null :
             <div className="project-iframe-container">
               <div className="iframe-toggle-buttons">
                 <button

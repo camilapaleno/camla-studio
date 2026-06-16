@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hibiscus Particles</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #f4f4f4; }
+    canvas.webgl {
+      display: block;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+    }
+    canvas.webgl.loaded { opacity: 1; }
+  </style>
+</head>
+<body>
+  <canvas class="webgl"></canvas>
+
+  <!-- Three.js r152 via CDN -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GPUComputationRenderer } from 'three/addons/misc/GPUComputationRenderer.js';
+
+    // ─── Config ───────────────────────────────────────────────
+    const COLORS = {
+      background: '#f4f4f4',
+      c1: '#c2185b',   // deep magenta — bottom
+      c2: '#f06292',   // soft pink    — mid
+      c3: '#fff9c4',   // pale yellow  — top (hibiscus tips)
+    };
+
+    // Mesh indices to EXCLUDE (pot=9, dirt=10)
+    const EXCLUDE_MESHES = new Set([9, 10]);
+
+    const FLOW = {
+      influence:  0.35,
+      strength:   1.28,
+      frequency:  1.0,
+    };
+
+    // ─── Scene setup ──────────────────────────────────────────
+    const canvas   = document.querySelector('canvas.webgl');
+    const scene    = new THREE.Scene();
+    const sizes    = {
+      width:      window.innerWidth,
+      height:     window.innerHeight,
+      pixelRatio: Math.min(window.devicePixelRatio, 2),
+    };
+
+    const camera = new THREE.PerspectiveCamera(35, sizes.width / sizes.height, 0.1, 100);
+    camera.position.set(-10, 5, sizes.width < 700 ? 12 : 8.1);
+    scene.add(camera);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(sizes.width, sizes.height);
+    renderer.setPixelRatio(sizes.pixelRatio);
+    renderer.setClearColor(COLORS.background);
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping    = true;
+    controls.dampingFactor    = 0.1;
+    controls.autoRotate       = true;
+    controls.autoRotateSpeed  = 0.2;
+    controls.enablePan        = true;
+    controls.enableZoom       = true;
+    controls.maxDistance      = 14;
+    controls.minDistance      = 6;
+    controls.rotateSpeed      = 0.4;
+    controls.maxPolarAngle    = Math.PI / 1.2;
+
+    // ─── Load + merge hibiscus meshes ─────────────────────────
+    const loader = new GLTFLoader();
+
+    loader.load('./blooming_hibiscus_time-lapse_animation.glb', (gltf) => {
+
+      // Collect all mesh geometries, skipping pot & dirt
+      const positions = [];
+
+      gltf.scene.traverse((child) => {
+        if (!child.isMesh) return;
+
+        // Match mesh name to our exclude list by checking known names
+        const name = child.name || '';
+        if (name.includes('POT') || name.includes('Dirt')) return;
+
+        const geo = child.geometry;
+        if (!geo || !geo.attributes.position) return;
+
+        // Apply the world matrix so meshes land in the right place
+        child.updateWorldMatrix(true, false);
+        const posAttr = geo.attributes.position;
+        const mat     = child.matrixWorld;
+
+        for (let i = 0; i < posAttr.count; i++) {
+          const v = new THREE.Vector3().fromBufferAttribute(posAttr, i).applyMatrix4(mat);
+          positions.push(v.x, v.y, v.z);
+        }
+      });
+
+      const totalVerts = positions.length / 3;
+      console.log('Total merged vertices:', totalVerts);
+
+      // Build a merged BufferGeometry
+      const mergedGeo = new THREE.BufferGeometry();
+      mergedGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+      initParticles(mergedGeo, totalVerts);
+      canvas.classList.add('loaded');
+
+    }, undefined, (err) => console.error('GLB load error:', err));
+
+    // ─── GPU Particle simulation ───────────────────────────────
+    function initParticles(geometry, count) {
+
+      // FBO texture size — next power-of-two-ish square that fits count
+      const fboSize = Math.ceil(Math.sqrt(count));
+
+      const gpuCompute = new GPUComputationRenderer(fboSize, fboSize, renderer);
+
+      // Base texture — stores resting positions (xyz) + random w
+      const baseTexture = gpuCompute.createTexture();
+      fillBaseTexture(baseTexture, geometry, count, fboSize);
+
+      // Particles texture — live positions + lifetime in .a
+      const particlesTexture = gpuCompute.createTexture();
+      copyToParticlesTexture(particlesTexture, baseTexture, count, fboSize);
+
+      const simVar = gpuCompute.addVariable('uParticles', simulationShader(), particlesTexture);
+      gpuCompute.setVariableDependencies(simVar, [simVar]);
+
+      simVar.material.uniforms.uTime           = new THREE.Uniform(0);
+      simVar.material.uniforms.uDeltaTime      = new THREE.Uniform(0);
+      simVar.material.uniforms.uBase           = new THREE.Uniform(baseTexture);
+      simVar.material.uniforms.uFlowFieldInfluence = new THREE.Uniform(FLOW.influence);
+      simVar.material.uniforms.uFlowFieldStrength  = new THREE.Uniform(FLOW.strength);
+      simVar.material.uniforms.uFlowFieldFrequency = new THREE.Uniform(FLOW.frequency);
+
+      const err = gpuCompute.init();
+      if (err) console.error('GPUComputationRenderer error:', err);
+
+      // ── Point cloud geometry ──
+      const uvArray   = new Float32Array(count * 2);
+      const sizeArray = new Float32Array(count);
+
+      for (let i = 0; i < count; i++) {
+        const ix = i % fboSize;
+        const iy = Math.floor(i / fboSize);
+        uvArray[i * 2 + 0] = (ix + 0.5) / fboSize;
+        uvArray[i * 2 + 1] = (iy + 0.5) / fboSize;
+        sizeArray[i] = Math.random();
+      }
+
+      const pointsGeo = new THREE.BufferGeometry();
+      pointsGeo.setDrawRange(0, count);
+      pointsGeo.setAttribute('aParticlesUv', new THREE.BufferAttribute(uvArray, 2));
+      pointsGeo.setAttribute('aSize',        new THREE.BufferAttribute(sizeArray, 1));
+
+      const pointsMat = new THREE.ShaderMaterial({
+        vertexShader:   vertexShader(),
+        fragmentShader: fragmentShader(),
+        uniforms: {
+          uSize:            new THREE.Uniform(0.018),
+          uResolution:      new THREE.Uniform(new THREE.Vector2(
+                              sizes.width  * sizes.pixelRatio,
+                              sizes.height * sizes.pixelRatio
+                            )),
+          uParticlesTexture: new THREE.Uniform(null),
+          uColor1:          { value: new THREE.Color(COLORS.c1) },
+          uColor2:          { value: new THREE.Color(COLORS.c2) },
+          uColor3:          { value: new THREE.Color(COLORS.c3) },
+        },
+        transparent: true,
+        depthWrite:  false,
+      });
+
+      const points = new THREE.Points(pointsGeo, pointsMat);
+      scene.add(points);
+
+      // ── Render loop ──
+      const clock = new THREE.Clock();
+
+      const tick = () => {
+        requestAnimationFrame(tick);
+        const elapsed = clock.getElapsedTime();
+        const delta   = clock.getDelta ? clock.getDelta() : 0.016;
+
+        simVar.material.uniforms.uTime.value      = elapsed * 0.5;
+        simVar.material.uniforms.uDeltaTime.value = delta   * 0.5;
+
+        gpuCompute.compute();
+        pointsMat.uniforms.uParticlesTexture.value =
+          gpuCompute.getCurrentRenderTarget(simVar).texture;
+
+        controls.update();
+        renderer.render(scene, camera);
+      };
+
+      tick();
+    }
+
+    // ─── Texture helpers ──────────────────────────────────────
+    function fillBaseTexture(texture, geometry, count, fboSize) {
+      const pos  = geometry.attributes.position;
+      const data = texture.image.data; // Float32Array, rgba per texel
+
+      for (let i = 0; i < fboSize * fboSize; i++) {
+        const si = i < count ? i : Math.floor(Math.random() * count);
+        data[i * 4 + 0] = pos.getX(si);
+        data[i * 4 + 1] = pos.getY(si);
+        data[i * 4 + 2] = pos.getZ(si);
+        data[i * 4 + 3] = Math.random(); // random w
+      }
+    }
+
+    function copyToParticlesTexture(texture, base, count, fboSize) {
+      const src  = base.image.data;
+      const dst  = texture.image.data;
+      for (let i = 0; i < fboSize * fboSize * 4; i++) {
+        dst[i] = src[i];
+      }
+      // Randomise .a so particles start at different lifecycle phases
+      for (let i = 0; i < fboSize * fboSize; i++) {
+        dst[i * 4 + 3] = Math.random();
+      }
+    }
+
+    // ─── Resize ───────────────────────────────────────────────
+    window.addEventListener('resize', () => {
+      sizes.width      = window.innerWidth;
+      sizes.height     = window.innerHeight;
+      sizes.pixelRatio = Math.min(window.devicePixelRatio, 2);
+
+      camera.aspect = sizes.width / sizes.height;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(sizes.width, sizes.height);
+      renderer.setPixelRatio(sizes.pixelRatio);
+    });
+
+    // ─── GLSL Shaders ─────────────────────────────────────────
+    function simulationShader() { return /* glsl */`
+      uniform float uTime;
+      uniform float uDeltaTime;
+      uniform sampler2D uBase;
+      uniform float uFlowFieldInfluence;
+      uniform float uFlowFieldStrength;
+      uniform float uFlowFieldFrequency;
+
+      vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x,289.0);}
+      float permute(float x){return floor(mod(((x*34.0)+1.0)*x,289.0));}
+      vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-0.85373472095314*r;}
+      float taylorInvSqrt(float r){return 1.79284291400159-0.85373472095314*r;}
+
+      vec4 grad4(float j,vec4 ip){
+        const vec4 ones=vec4(1.0,1.0,1.0,-1.0);
+        vec4 p,s;
+        p.xyz=floor(fract(vec3(j)*ip.xyz)*7.0)*ip.z-1.0;
+        p.w=1.5-dot(abs(p.xyz),ones.xyz);
+        s=vec4(lessThan(p,vec4(0.0)));
+        p.xyz=p.xyz+(s.xyz*2.0-1.0)*s.www;
+        return p;
+      }
+
+      float simplexNoise4d(vec4 v){
+        const vec2 C=vec2(0.138196601125010504,0.309016994374947451);
+        vec4 i=floor(v+dot(v,C.yyyy));
+        vec4 x0=v-i+dot(i,C.xxxx);
+        vec4 i0;
+        vec3 isX=step(x0.yzw,x0.xxx);
+        vec3 isYZ=step(x0.zww,x0.yyz);
+        i0.x=isX.x+isX.y+isX.z;
+        i0.yzw=1.0-isX;
+        i0.y+=isYZ.x+isYZ.y;
+        i0.zw+=1.0-isYZ.xy;
+        i0.z+=isYZ.z;
+        i0.w+=1.0-isYZ.z;
+        vec4 i3=clamp(i0,0.0,1.0);
+        vec4 i2=clamp(i0-1.0,0.0,1.0);
+        vec4 i1=clamp(i0-2.0,0.0,1.0);
+        vec4 x1=x0-i1+1.0*C.xxxx;
+        vec4 x2=x0-i2+2.0*C.xxxx;
+        vec4 x3=x0-i3+3.0*C.xxxx;
+        vec4 x4=x0-1.0+4.0*C.xxxx;
+        i=mod(i,289.0);
+        float j0=permute(permute(permute(permute(i.w)+i.z)+i.y)+i.x);
+        vec4 j1=permute(permute(permute(permute(
+          i.w+vec4(i1.w,i2.w,i3.w,1.0))
+          +i.z+vec4(i1.z,i2.z,i3.z,1.0))
+          +i.y+vec4(i1.y,i2.y,i3.y,1.0))
+          +i.x+vec4(i1.x,i2.x,i3.x,1.0));
+        vec4 ip=vec4(1.0/294.0,1.0/49.0,1.0/7.0,0.0);
+        vec4 p0=grad4(j0,ip);
+        vec4 p1=grad4(j1.x,ip);
+        vec4 p2=grad4(j1.y,ip);
+        vec4 p3=grad4(j1.z,ip);
+        vec4 p4=grad4(j1.w,ip);
+        vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));
+        p0*=norm.x; p1*=norm.y; p2*=norm.z; p3*=norm.w;
+        p4*=taylorInvSqrt(dot(p4,p4));
+        vec3 m0=max(0.6-vec3(dot(x0,x0),dot(x1,x1),dot(x2,x2)),0.0);
+        vec2 m1=max(0.6-vec2(dot(x3,x3),dot(x4,x4)),0.0);
+        m0=m0*m0; m1=m1*m1;
+        return 49.0*(dot(m0*m0,vec3(dot(p0,x0),dot(p1,x1),dot(p2,x2)))
+                    +dot(m1*m1,vec2(dot(p3,x3),dot(p4,x4))));
+      }
+
+      void main() {
+        float time = uTime * 0.2;
+        vec2 uv = gl_FragCoord.xy / resolution.xy;
+        vec4 particle = texture(uParticles, uv);
+        vec4 base     = texture(uBase, uv);
+
+        if (particle.a >= 1.0) {
+          particle.a   = mod(particle.a, 1.0);
+          particle.xyz = base.xyz;
+        } else {
+          float strength  = simplexNoise4d(vec4(base.xyz * 0.5, time + 1.0));
+          float influence = (uFlowFieldInfluence - 0.5) * (-2.0);
+          strength = smoothstep(influence, 1.0, strength);
+
+          vec3 flowField = vec3(
+            simplexNoise4d(vec4(particle.xyz + 0.0, time * uFlowFieldFrequency)),
+            simplexNoise4d(vec4(particle.xyz + 1.0, time * uFlowFieldFrequency)),
+            simplexNoise4d(vec4(particle.xyz + 2.0, time * uFlowFieldFrequency))
+          );
+          flowField = normalize(flowField);
+          particle.xyz += flowField * uDeltaTime * strength * uFlowFieldStrength;
+          particle.a   += uDeltaTime * 0.3;
+        }
+
+        gl_FragColor = particle;
+      }
+    `; }
+
+    function vertexShader() { return /* glsl */`
+      uniform vec2  uResolution;
+      uniform float uSize;
+      uniform sampler2D uParticlesTexture;
+      attribute vec2  aParticlesUv;
+      attribute float aSize;
+
+      uniform vec3 uColor1;
+      uniform vec3 uColor2;
+      uniform vec3 uColor3;
+
+      varying vec3 vColor;
+
+      void main() {
+        vec4 particle = texture(uParticlesTexture, aParticlesUv);
+
+        vec4 modelPosition     = modelMatrix      * vec4(particle.xyz, 1.0);
+        vec4 viewPosition      = viewMatrix       * modelPosition;
+        vec4 projectedPosition = projectionMatrix * viewPosition;
+        gl_Position = projectedPosition;
+
+        float sizeIn  = smoothstep(0.0, 0.1, particle.a);
+        float sizeOut = 1.0 - smoothstep(0.7, 1.0, particle.a);
+        float size    = min(sizeIn, sizeOut);
+
+        gl_PointSize  = size * aSize * uSize * uResolution.y;
+        gl_PointSize *= (1.0 / -viewPosition.z);
+
+        float depth = (modelPosition.y + 1.0) * 0.5;
+        vec3 color;
+        if (depth <= 0.5) {
+          color = mix(uColor1, uColor2, depth * 2.0);
+        } else {
+          color = mix(uColor2, uColor3, (depth - 0.5) * 1.8);
+        }
+        vColor = color;
+      }
+    `; }
+
+    function fragmentShader() { return /* glsl */`
+      varying vec3 vColor;
+
+      void main() {
+        float d = length(gl_PointCoord - 0.5);
+        if (d > 0.6) discard;
+        gl_FragColor = vec4(vColor, 0.9);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }
+    `; }
+
+  </script>
+</body>
+</html>

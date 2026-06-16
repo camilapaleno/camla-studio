@@ -1,11 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    output: 'export', // Required for static export
+    output: 'export',
     images: {
-      unoptimized: true, // Disable Image Optimization API for static export
+      unoptimized: true,
     },
     eslint: {
-      ignoreDuringBuilds: true, // Disable ESLint during build for production
+      ignoreDuringBuilds: true,
+    },
+    webpack(config) {
+      config.module.rules.push({
+        test: /\.webm$/,
+        type: 'asset/resource',
+      });
+      return config;
     },
   };
 

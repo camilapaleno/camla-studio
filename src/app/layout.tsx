@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import '@/app/globals.css';
-import { DM_Sans } from 'next/font/google';
+import { DM_Mono } from 'next/font/google';
 import ClientLayout from '@/components/ClientLayout';
 
-const dmSans = DM_Sans({
+const dmMono = DM_Mono({
   subsets: ['latin'],
-  weight: ['400', '500', '700'],
-  variable: '--font-dm-sans',
+  weight: ['300', '400', '500'],
+  variable: '--font-dm-mono',
 });
 
 export const metadata: Metadata = {
@@ -24,7 +24,7 @@ export default function RootLayout({
       <head>
         <link rel="stylesheet" href="https://use.typekit.net/tmt3ouk.css" />
       </head>
-      <body className={dmSans.variable}>
+      <body className={dmMono.variable}>
         <ClientLayout>
           {children}
         </ClientLayout>

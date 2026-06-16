@@ -1,131 +1,149 @@
 "use client"
 
-import React, { useState, useEffect } from "react";
-import {development} from '@/data/development';
-import Nav from "@/components/Nav";
-import Footer from "@/components/Footer";
+import React, { useState } from "react";
+import { development } from '@/data/development';
 import Project from "@/components/Project";
-import PortfolioCard from "@/components/PortfolioCard";
-import { motion } from "motion/react"
-import { easeInOut } from "motion";
 import AnimatedHeader from "@/components/AnimatedHeader";
+import ssBlur from "@/app/assets/screencap/ss-template-blur.jpg";
+import ssBright from "@/app/assets/screencap/ss-template-bright.jpg";
+import ssCd from "@/app/assets/screencap/ss-template-cd.jpg";
+import ssHorizon from "@/app/assets/screencap/ss-template-horizon.jpg";
+import ssPerspective from "@/app/assets/screencap/ss-template-perspective.jpg";
+import ssPhoto from "@/app/assets/screencap/ss-template-photo.jpg";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DevelopmentProject = (typeof development)[number] & { [key: string]: any };
+
+const SECTIONS = ["custom", "studios", "hospitality"] as const;
+
+const SS_TEMPLATES = [
+  { name: "Blur", image: ssBlur, link: "#" },
+  { name: "Bright", image: ssBright, link: "#" },
+  { name: "CD", image: ssCd, link: "#" },
+  { name: "Horizon", image: ssHorizon, link: "#" },
+  { name: "Perspective", image: ssPerspective, link: "#" },
+  { name: "Photo", image: ssPhoto, link: "#" },
+];
+const PREVIEW_COUNT = 3;
+
+function DevGridCard({ project, onClick, isFirst }: { project: DevelopmentProject; onClick: () => void; isFirst?: boolean }) {
+  const primaryTool = project.tools.split(',')[0].trim();
+
+  return (
+    <button className={`dev-grid-card${isFirst ? ' dev-grid-card--first' : ''}`} onClick={onClick}>
+      <div className="dev-grid-card-image">
+        <div className="dev-grid-image-wrapper">
+          <img src={project.preview.src} alt={project.title} className="dev-grid-preview" />
+          {project.overlayVideo ? (
+            <video
+              src={project.overlayVideo}
+              className="dev-grid-overlay"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          ) : (
+            <img src={project.overlay.src} alt={project.title} className="dev-grid-overlay" />
+          )}
+        </div>
+      </div>
+      <div className="dev-grid-card-info">
+        <span className="dev-grid-card-title">{project.title}</span>
+        <span className="dev-grid-card-meta">{primaryTool}</span>
+      </div>
+    </button>
+  );
+}
+
+function SSTemplateCard({ name, image, link }: { name: string; image: { src: string }; link: string }) {
+  return (
+    <a
+      className="dev-grid-card"
+      href={link}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column' }}
+    >
+      <div className="dev-grid-card-image">
+        <div className="dev-grid-image-wrapper">
+          <img src={image.src} alt={name} className="dev-grid-preview" />
+        </div>
+      </div>
+      <div className="dev-grid-card-info">
+        <span className="dev-grid-card-title">{name}</span>
+        <span className="dev-grid-card-meta">Squarespace</span>
+      </div>
+    </a>
+  );
+}
 
 function Development() {
-  const [filter, setFilter] = useState("my favorites!");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [projects, setProjects] = useState<any[]>([]);
-  const [allTags, setAllTags] = useState<string[]>([]);
-
-  useEffect(() => {
-    // Combine both builders and development projects
-    const allProjects = [...development];
-    setProjects(allProjects);
-
-    // Extract all unique tags
-    const tags = new Set<string>();
-    allProjects.forEach(project => {
-      project.category.forEach((tag: string) => {
-        if (tag !== "all") {
-          tags.add(tag);
-        }
-      });
-    });
-    setAllTags(Array.from(tags).sort());
-  }, []);
-
-  useEffect(() => {
-    setProjects([]);
-
-    const allProjects = [...development];
-    const filtered = allProjects.map(p => ({
-      ...p,
-      filtered: p.category.includes(filter)
-    }));
-    setProjects(filtered);
-  }, [filter]);
-
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<DevelopmentProject | null>(null);
   const [visible, setVisible] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-  const toggleItem = (item = null) => {
+  const toggleItem = (item: DevelopmentProject | null = null) => {
     setData(item);
     setVisible(item !== null);
   };
 
   return (
     <>
-
       <div className="portfolio">
-
         <section className="title">
-          <br/><br/>
-          <AnimatedHeader
-          as="h2"
-          style={{ pointerEvents: 'auto' }}
-        >
-          Creative online <span className="pixel">experiences</span> that align with your brand image and message
-        </AnimatedHeader>
+          <br /><br />
+          <AnimatedHeader as="h3" style={{ pointerEvents: 'auto' }}>
+            Made with <span className="pixel">camila</span>
+          </AnimatedHeader>
         </section>
-
-        <div className="filter-container">
-          <div className="filter-tags">
-            <button
-              className={`filter-tag ${filter === "all" ? 'selected' : ''}`}
-              onClick={() => setFilter("all")}
-            >
-              all
-              {filter === "all" && (
-                <span className="clear-filter-inline" onClick={(e) => {
-                  e.stopPropagation();
-                  setFilter("all");
-                }}>
-                  ✕
-                </span>
-              )}
-            </button>
-            {allTags.map(tag => (
-              <button
-                key={tag}
-                className={`filter-tag ${filter === tag ? 'selected' : ''}`}
-                onClick={() => setFilter(tag)}
-              >
-                {tag}
-                {filter === tag && (
-                  <span className="clear-filter-inline" onClick={(e) => {
-                    e.stopPropagation();
-                    setFilter("all");
-                  }}>
-                    ✕
-                  </span>
-                )}
-              </button>
-            ))}
+          <div className="dev-section">
+            <p className="dev-section-label">/squarespace templates</p>
+            <div className="dev-grid-container">
+              {SS_TEMPLATES.map((t) => (
+                <SSTemplateCard key={t.name} name={t.name} image={t.image} link={t.link} />
+              ))}
+            </div>
           </div>
+        <div className="dev-sections">
+          {SECTIONS.map(section => {
+            const projects = development.filter(p => p.category.includes(section));
+            if (projects.length === 0) return null;
+            const isExpanded = expanded[section];
+            const shown = isExpanded ? projects : projects.slice(0, PREVIEW_COUNT);
+            const hasMore = projects.length > PREVIEW_COUNT;
+            return (
+              <div key={section} className="dev-section">
+                <p className="dev-section-label">/{section}</p>
+                <div className="dev-grid-container">
+                  {shown.map((item, index) => (
+                    <DevGridCard
+                      key={item.name}
+                      project={item}
+                      onClick={() => toggleItem(item)}
+                      isFirst={index === 0}
+                    />
+                  ))}
+                </div>
+                {hasMore && !isExpanded && (
+                  <button
+                    className="dev-section-more"
+                    onClick={() => setExpanded(prev => ({ ...prev, [section]: true }))}
+                  >
+                    see more ({projects.length - PREVIEW_COUNT})
+                  </button>
+                )}
+              </div>
+            );
+          })}
+
+
         </div>
 
-        <div className="portfolio__container">
-          <ul>
-            {projects.map(item =>
-              item.filtered === true ?
-              <li key={item.name}>
-                <PortfolioCard
-                  project={item}
-                  onClick={() => toggleItem(item)}
-                />
-              </li> : ""
-            )}
-          </ul>
-        </div>
-
-        {visible === true && data !== null && (
-              <Project
-              data={data}
-              closeModal={() => toggleItem()} />
-            )}
-
+        {visible && data !== null && (
+          <Project data={data} closeModal={() => toggleItem()} />
+        )}
       </div>
-
     </>
   );
 }
