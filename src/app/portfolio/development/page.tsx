@@ -14,15 +14,15 @@ import ssPhoto from "@/app/assets/screencap/ss-template-photo.jpg";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DevelopmentProject = (typeof development)[number] & { [key: string]: any };
 
-const SECTIONS = ["custom", "studios", "hospitality"] as const;
+const SECTIONS = ["studios", "custom", "hospitality"] as const;
 
 const SS_TEMPLATES = [
-  { name: "Blur", image: ssBlur, link: "#" },
-  { name: "Bright", image: ssBright, link: "#" },
-  { name: "CD", image: ssCd, link: "#" },
-  { name: "Horizon", image: ssHorizon, link: "#" },
-  { name: "Perspective", image: ssPerspective, link: "#" },
-  { name: "Photo", image: ssPhoto, link: "#" },
+  { name: "Blur", image: ssBlur, link: "https://pcmila.squarespace.com/blur" },
+  { name: "Bright", image: ssBright, link: "https://pcmila.squarespace.com/bright" },
+  { name: "CD", image: ssCd, link: "https://pcmila.squarespace.com/cds" },
+  { name: "Horizon", image: ssHorizon, link: "https://pcmila.squarespace.com/horizon" },
+  { name: "Perspective", image: ssPerspective, link: "https://pcmila.squarespace.com/perspective" },
+  { name: "Photo", image: ssPhoto, link: "https://pcmila.squarespace.com/photo/albums" },
 ];
 const PREVIEW_COUNT = 3;
 
