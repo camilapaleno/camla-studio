@@ -1,7 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import React, { useState } from "react";
 import { development } from '@/data/development';
 import Project from "@/components/Project";
 import AnimatedHeader from "@/components/AnimatedHeader";
@@ -57,17 +56,32 @@ function DevGridCard({ project, onClick, isFirst }: { project: DevelopmentProjec
   );
 }
 
-function SSTemplateCard({ name, image, onPlay }: { name: string; image: { src: string }; onPlay: () => void }) {
+function SSTemplateCard({ name, image, video }: { name: string; image: { src: string }; video: string }) {
+  const [playing, setPlaying] = useState(false);
+
   return (
-    <button className="dev-grid-card" onClick={onPlay}>
+    <button className="dev-grid-card" onClick={() => setPlaying(true)}>
       <div className="dev-grid-card-image">
         <div className="dev-grid-image-wrapper">
-          <img src={image.src} alt={name} className="dev-grid-preview" />
-          <div className="ss-play-btn" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          </div>
+          {playing ? (
+            <video
+              src={video}
+              autoPlay
+              controls
+              playsInline
+              className="dev-grid-preview"
+              style={{ background: '#000' }}
+            />
+          ) : (
+            <>
+              <img src={image.src} alt={name} className="dev-grid-preview" />
+              <div className="ss-play-btn" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+            </>
+          )}
         </div>
       </div>
       <div className="dev-grid-card-info">
@@ -78,47 +92,10 @@ function SSTemplateCard({ name, image, onPlay }: { name: string; image: { src: s
   );
 }
 
-function SSVideoModal({ video, name, onClose }: { video: string; name: string; onClose: () => void }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = 'unset';
-      window.removeEventListener('keydown', onKey);
-    };
-  }, [onClose]);
-
-  if (!mounted) return null;
-
-  return createPortal(
-    <div className="ss-video-overlay" onClick={onClose}>
-      <button className="ss-video-close" onClick={onClose} aria-label="Close">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-      <video
-        src={video}
-        autoPlay
-        controls
-        playsInline
-        className="ss-video-player"
-        onClick={e => e.stopPropagation()}
-      />
-    </div>,
-    document.body
-  );
-}
-
 function Development() {
   const [data, setData] = useState<DevelopmentProject | null>(null);
   const [visible, setVisible] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [activeVideo, setActiveVideo] = useState<{ video: string; name: string } | null>(null);
 
   const toggleItem = (item: DevelopmentProject | null = null) => {
     setData(item);
@@ -143,7 +120,7 @@ function Development() {
                 key={t.name}
                 name={t.name}
                 image={t.image}
-                onPlay={() => setActiveVideo({ video: t.video, name: t.name })}
+                video={t.video}
               />
             ))}
           </div>
@@ -186,13 +163,6 @@ function Development() {
           <Project data={data} closeModal={() => toggleItem()} />
         )}
 
-        {activeVideo && (
-          <SSVideoModal
-            video={activeVideo.video}
-            name={activeVideo.name}
-            onClose={() => setActiveVideo(null)}
-          />
-        )}
       </div>
     </>
   );
