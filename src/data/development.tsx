@@ -1,14 +1,14 @@
 import placeholder from "@/app/assets/preview/portfolio-preview-placeholder.png";
 
 import satinScreencap from "@/app/assets/screencap/portfolio-img-satin_eights.jpg";
-import satinVideo from "@/app/assets/screencap/portfolio-vid-satin_eights.webm";
+import satinVideo from "@/app/assets/video/portfolio-vid-satin_eights.webm";
 import tomScreencap from "@/app/assets/screencap/portfolio-img-tom_design.jpg";
 import myphotoScreencap from "@/app/assets/screencap/portfolio-img-photo_library-1.jpg";
 import devonScreencap from "@/app/assets/screencap/portfolio-img-devon_donis.jpg";
 import beechjetScreencap from "@/app/assets/screencap/portfolio-img-beechjet.jpg";
 import marianaScreencap from "@/app/assets/screencap/portfolio-img-marsy_psd.jpg";
 import sageScreencap from "@/app/assets/screencap/portfolio-img-sage_social.jpg";
-import sageVideo from "@/app/assets/screencap/portfolio-vid-sage_social.webm";
+import sageVideo from "@/app/assets/video/portfolio-vid-sage_social.webm";
 import pullScreencap from "@/app/assets/screencap/portfolio-img-pull_pr.jpg";
 import kdScreencap from "@/app/assets/screencap/portfolio-img-kd_photo.jpg";
 import cafeScreencap from "@/app/assets/screencap/portfolio-img-cafe_blue.jpg";
@@ -21,24 +21,7 @@ import blogScreencap from "@/app/assets/screencap/portfolio-img-backpack_blog.jp
 export const development = [
 
   // --- studios ---
-  {
-    name: "Satin Eights",
-    title: "Satin Eights",
-    short: "Website for a production company",
-    long: "Website for a production company.",
-    tools: "Squarespace, CSS, JS",
-    preview: satinScreencap,
-    overlay: placeholder,
-    overlayVideo: satinVideo,
-    category: ["all", "studios"],
-    projectType: "client",
-    website: "none",
-    github: "none",
-    youtube: "https://www.youtube.com/embed/pfog5jUnmVY?si=s4aR6BzWh9pj_Oe7&controls=0",
-    gallery: "none",
-    embed: "none",
-    featured: false,
-  },
+
   {
     name: "Sage Social",
     title: "Sage Social",
@@ -50,12 +33,11 @@ export const development = [
     overlayVideo: sageVideo,
     category: ["all", "studios"],
     projectType: "client",
-    website: "https://sagesocial.co",
+    website: "none",
     github: "none",
     youtube: "https://www.youtube.com/embed/jpCddu452zk?si=F3q1NcdO4iqXjOQQ&controls=0",
     gallery: "none",
     embed: "none",
-    caseStudy: "sage-social-marketing",
     featured: false,
   },
   {
@@ -85,9 +67,27 @@ export const development = [
     overlay: placeholder,
     category: ["all", "studios"],
     projectType: "client",
-    website: "https://kd.atsatt.com//",
+    website: "none",
     github: "none",
     youtube: "https://www.youtube.com/embed/v2doyzKK2RQ?si=DKsTX6U2arR3vPh5&controls=0",
+    gallery: "none",
+    embed: "none",
+    featured: false,
+  },
+  {
+    name: "Satin Eights",
+    title: "Satin Eights",
+    short: "Website for a production company",
+    long: "Website for a production company.",
+    tools: "Squarespace, CSS, JS",
+    preview: satinScreencap,
+    overlay: placeholder,
+    overlayVideo: satinVideo,
+    category: ["all", "studios"],
+    projectType: "client",
+    website: "none",
+    github: "none",
+    youtube: "https://www.youtube.com/embed/pfog5jUnmVY?si=s4aR6BzWh9pj_Oe7&controls=0",
     gallery: "none",
     embed: "none",
     featured: false,
@@ -143,7 +143,6 @@ export const development = [
     youtube: "https://www.youtube.com/embed/Zn972Dl2XBI?si=CHgHuoDsW3p5NWg_&controls=0",
     gallery: "none",
     embed: "none",
-    caseStudy: "jaco-beach-luxe",
     featured: false,
   },
   {
