@@ -56,18 +56,23 @@ function DevGridCard({ project, onClick, isFirst }: { project: DevelopmentProjec
   );
 }
 
-function SSTemplateCard({ name, image, video }: { name: string; image: { src: string }; video: string }) {
-  const [playing, setPlaying] = useState(false);
-
+function SSTemplateCard({ name, image, video, isPlaying, onPlay }: {
+  name: string;
+  image: { src: string };
+  video: string;
+  isPlaying: boolean;
+  onPlay: () => void;
+}) {
   return (
-    <button className="dev-grid-card" onClick={() => setPlaying(true)}>
+    <button className="dev-grid-card" onClick={onPlay}>
       <div className="dev-grid-card-image">
         <div className="dev-grid-image-wrapper">
-          {playing ? (
+          {isPlaying ? (
             <video
               src={video}
               autoPlay
-              controls
+              loop
+              muted
               playsInline
               className="dev-grid-preview"
               style={{ background: '#000' }}
@@ -96,6 +101,7 @@ function Development() {
   const [data, setData] = useState<DevelopmentProject | null>(null);
   const [visible, setVisible] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
 
   const toggleItem = (item: DevelopmentProject | null = null) => {
     setData(item);
@@ -121,6 +127,8 @@ function Development() {
                 name={t.name}
                 image={t.image}
                 video={t.video}
+                isPlaying={activeTemplate === t.name}
+                onPlay={() => setActiveTemplate(prev => prev === t.name ? null : t.name)}
               />
             ))}
           </div>
