@@ -105,34 +105,18 @@ const ParticleBackgroundAligned = ({
   backgroundColor = 'transparent',
   align = 'top',
 }: ParticleBackgroundAlignedProps) => {
-  const getColors = () => {
-    if (typeof window === 'undefined') {
-      return {
-        particleColor: '#fff',
-        gradientColorCenter: '#94330e',
-        gradientColorOuter: '#5f26d9',
-        linearGradientColor: '#CBE7FF',
-      };
-    }
-    const styles = getComputedStyle(document.body);
-    return {
-      particleColor: styles.getPropertyValue('--particle-color').trim() || '#fff',
-      gradientColorCenter: styles.getPropertyValue('--particle-gradient-center').trim() || '#94330e',
-      gradientColorOuter: styles.getPropertyValue('--particle-gradient-outer').trim() || '#5f26d9',
-      linearGradientColor: styles.getPropertyValue('--particle-bg').trim() || '#CBE7FF',
-    };
-  };
+  const getColors = () => ({
+    particleColor: '#ffffff',
+    gradientColorCenter: '#9d3508',
+    gradientColorOuter: '#866d19',
+    linearGradientColor: '#2f2411',
+  });
 
   const [colors, setColors] = useState(getColors());
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    setColors(getColors());
-
-    const observer = new MutationObserver(() => setColors(getColors()));
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-    return () => observer.disconnect();
   }, []);
 
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
