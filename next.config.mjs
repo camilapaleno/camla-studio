@@ -3,6 +3,9 @@ const nextConfig = {
     output: 'export',
     basePath: '/camla-studio',
     assetPrefix: '/camla-studio',
+    env: {
+      NEXT_PUBLIC_BASE_PATH: '/camla-studio',
+    },
     images: {
       unoptimized: true,
     },

@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 // ─── Model ────────────────────────────────────────────────────────────────────
 // Drop any .glb into public/models/ and point this at it.
 // Available: 'plum-branch.glb' | 'whispering-branch.glb' | 'hibiscus.glb'
-const MODEL = '/models/arc-leaves.glb';
+const MODEL = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/models/arc-leaves.glb`;
 
 // ─── Particle count ───────────────────────────────────────────────────────────
 const MAX_PARTICLES = 10_000;

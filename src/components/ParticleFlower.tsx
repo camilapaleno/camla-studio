@@ -146,7 +146,7 @@ export default function ParticleFlower() {
       const gltf = await new Promise<any>((resolve, reject) => {
         // ── 3D model ──────────────────────────────────────────────────────────
         // Swap the path to use a different GLB file.
-        new GLTFLoader().load('/models/hibiscus.glb', resolve, undefined, reject);
+        new GLTFLoader().load(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/models/hibiscus.glb`, resolve, undefined, reject);
       });
 
       if (disposed) { renderer.dispose(); return; }
